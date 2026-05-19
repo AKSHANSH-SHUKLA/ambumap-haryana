@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgis/postgis:15-3.4
+    container_name: ambumap_postgres
+    environment:
+      POSTGRES_USER: ambumap
+      POSTGRES_PASSWORD: ambumap
+      POSTGRES_DB: ambumap
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # Optional: self-hosted OSRM. Uncomment after building the .osrm graph.
+  # See README "Self-hosted OSRM" section for the one-time graph build steps.
+  # osrm:
+  #   image: osrm/osrm-backend
+  #   container_name: ambumap_osrm
+  #   command: osrm-routed --algorithm mld /data/northern-zone-latest.osrm
+  #   ports:
+  #     - "5000:5000"
+  #   volumes:
+  #     - ./osrm-data:/data
+
+volumes:
+  pgdata:
