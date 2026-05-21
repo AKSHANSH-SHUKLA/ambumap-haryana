@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import MapView from "./components/MapView.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import UploadModal from "./components/UploadModal.jsx";
-import HospitalDetails, { NearestRoutesPanel } from "./components/HospitalDetails.jsx";
+import HospitalDetails from "./components/HospitalDetails.jsx";
+import RecommendationPanel from "./components/RecommendationPanel.jsx";
 import { api } from "./api/client.js";
 
 export default function App() {
@@ -16,18 +17,20 @@ export default function App() {
   const [activeLayer, setActiveLayer] = useState("ambulances");
   const [showUpload, setShowUpload] = useState(false);
   const [selectedAmbulance, setSelectedAmbulance] = useState(null);
-  const [nearestRoutes, setNearestRoutes] = useState(null);
+  const [recommendation, setRecommendation] = useState(null);
   const [selectedHospital, setSelectedHospital] = useState(null);
+  const [injuryOptions, setInjuryOptions] = useState([]);
+  const [selectedInjury, setSelectedInjury] = useState("tbi");      // default to TBI
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Load filter options + districts once on mount
+  // One-time loads
   useEffect(() => {
     api.filterOptions("Haryana").then(setFilterOptions).catch(console.error);
     api.districts("Haryana").then(setDistricts).catch(console.error);
+    api.injuryOptions().then(setInjuryOptions).catch(console.error);
   }, []);
 
-  // Refetch data whenever filters or layer change
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
@@ -55,54 +58,65 @@ export default function App() {
   const handleFilterChange = (key, value) => {
     setFilters((f) => ({ ...f, [key]: value }));
     setSelectedAmbulance(null);
-    setNearestRoutes(null);
+    setRecommendation(null);
   };
 
   const handleClearFilters = () => {
     setFilters({ state: "All", district: "All", day: "All", time_period: "All" });
     setSelectedAmbulance(null);
-    setNearestRoutes(null);
+    setRecommendation(null);
   };
 
-  // Track an in-flight request so a rapid second click cancels the previous one.
+  // Token-based request cancellation: only the most recent click "wins"
   const inFlightAmbulance = React.useRef(null);
   const inFlightHospital  = React.useRef(null);
 
+  // Smart recommendation fetch — uses current selectedInjury
+  const fetchRecommendation = useCallback(
+    async (ambulanceId, injury) => {
+      const myToken = Symbol("rec");
+      inFlightAmbulance.current = myToken;
+      setLoading(true);
+      try {
+        const data = await api.recommendHospitals(ambulanceId, injury, 50);
+        if (inFlightAmbulance.current === myToken) {
+          setRecommendation(data);
+        }
+      } catch (e) {
+        if (inFlightAmbulance.current === myToken) {
+          showToast(`Routing failed: ${e.message}`, "error");
+        }
+      } finally {
+        if (inFlightAmbulance.current === myToken) {
+          setLoading(false);
+        }
+      }
+    },
+    []
+  );
+
   const handleAmbulanceClick = async (feature) => {
-    // Visual feedback FIRST so the user sees the click registered immediately:
     setSelectedAmbulance(feature);
     setSelectedHospital(null);
-    setNearestRoutes(null);     // clear stale polylines RIGHT NOW
-    setLoading(true);
+    setRecommendation(null);
+    if (selectedInjury) {
+      await fetchRecommendation(feature.properties.unique_id, selectedInjury);
+    }
+  };
 
-    const myToken = Symbol("ambClick");
-    inFlightAmbulance.current = myToken;
-
-    try {
-      const data = await api.nearestHospitals(feature.properties.unique_id, 50);
-      // Only commit if this is still the most recent click
-      if (inFlightAmbulance.current === myToken) {
-        setNearestRoutes(data);
-      }
-    } catch (e) {
-      if (inFlightAmbulance.current === myToken) {
-        showToast(`Routing failed: ${e.message}`, "error");
-      }
-    } finally {
-      if (inFlightAmbulance.current === myToken) {
-        setLoading(false);
-      }
+  // When the user changes injury type in the panel, re-run the recommendation
+  const handleInjuryChange = (injury) => {
+    setSelectedInjury(injury);
+    if (selectedAmbulance && injury) {
+      fetchRecommendation(selectedAmbulance.properties.unique_id, injury);
     }
   };
 
   const handleHospitalClick = async (hospitalId) => {
-    // Show a placeholder panel immediately
     setSelectedHospital({ properties: { name: "Loading…", level_label: "" } });
     setLoading(true);
-
     const myToken = Symbol("hospClick");
     inFlightHospital.current = myToken;
-
     try {
       const h = await api.hospital(hospitalId);
       if (inFlightHospital.current === myToken) {
@@ -120,9 +134,7 @@ export default function App() {
     }
   };
 
-  const handleRouteClick = (h) => {
-    handleHospitalClick(h.hospital_id);
-  };
+  const handleRouteClick = (h) => handleHospitalClick(h.hospital_id);
 
   const handleUploaded = (target, count) => {
     showToast(`${count} ${target} uploaded`, "success");
@@ -158,7 +170,7 @@ export default function App() {
           onLayerChange={(l) => {
             setActiveLayer(l);
             setSelectedAmbulance(null);
-            setNearestRoutes(null);
+            setRecommendation(null);
             setSelectedHospital(null);
           }}
         />
@@ -171,7 +183,7 @@ export default function App() {
             selectedDistrict={filters.district !== "All" ? filters.district : null}
             activeLayer={activeLayer}
             selectedAmbulance={selectedAmbulance}
-            nearestRoutes={nearestRoutes}
+            recommendation={recommendation}
             onAmbulanceClick={handleAmbulanceClick}
             onHospitalClick={handleHospitalClick}
             onRouteClick={handleRouteClick}
@@ -184,12 +196,14 @@ export default function App() {
             />
           )}
 
-          {nearestRoutes && !selectedHospital && (
-            <NearestRoutesPanel
-              data={nearestRoutes}
-              onSelectHospital={handleHospitalClick}
+          {recommendation && !selectedHospital && (
+            <RecommendationPanel
+              data={recommendation}
+              injuryOptions={injuryOptions}
+              selectedInjury={selectedInjury}
+              onPickInjury={handleInjuryChange}
               onClose={() => {
-                setNearestRoutes(null);
+                setRecommendation(null);
                 setSelectedAmbulance(null);
               }}
             />
@@ -204,9 +218,7 @@ export default function App() {
         />
       )}
 
-      {toast && (
-        <div className={`toast ${toast.type}`}>{toast.message}</div>
-      )}
+      {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
 
       {loading && (
         <div style={{

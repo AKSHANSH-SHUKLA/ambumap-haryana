@@ -399,3 +399,17 @@ button {
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Hospital divIcon shouldn't get Leaflet's default white background */
+.hospital-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Animated dash march on the recommended route's white halo */
+.route-pulse {
+  animation: dashflow 1.5s linear infinite;
+}
+@keyframes dashflow {
+  to { stroke-dashoffset: -24; }
+}

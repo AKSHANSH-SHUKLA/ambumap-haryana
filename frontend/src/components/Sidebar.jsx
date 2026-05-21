@@ -109,11 +109,67 @@ export default function Sidebar({
       </div>
 
       <h3>Legend</h3>
-      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.8 }}>
-        <div><span style={{ display: "inline-block", width: 10, height: 10, background: "#DC2626", borderRadius: "50%", marginRight: 8 }}/>Ambulance</div>
-        <div><span style={{ display: "inline-block", width: 10, height: 10, background: "#2563EB", borderRadius: "50%", marginRight: 8 }}/>Hospital</div>
-        <div><span style={{ display: "inline-block", width: 18, height: 5, background: "#14532D", marginRight: 6, verticalAlign: "middle" }}/>Nearest route</div>
-        <div><span style={{ display: "inline-block", width: 16, height: 2, background: "#2563EB", marginRight: 6, verticalAlign: "middle" }}/>Other routes within 50 km</div>
+      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.9 }}>
+        <div>
+          <span style={{ display: "inline-block", width: 12, height: 12, background: "#DC2626",
+                         borderRadius: "50%", marginRight: 8, verticalAlign: "middle" }}/>
+          Ambulance
+        </div>
+        <div style={{ marginTop: 4, fontWeight: 600, color: "var(--text)" }}>Hospital icons</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <svg width="20" height="20" viewBox="0 0 32 32">
+            <path d="M16 1 L29 5 V16 C29 24 22 30 16 31 C10 30 3 24 3 16 V5 Z"
+                  fill="#DC2626" stroke="#fff" strokeWidth="2"/>
+            <path d="M16 12v8H12v-8H4v-4h8V0h4v8h8v4z" fill="#fff"
+                  transform="translate(2,2) scale(0.8)"/>
+          </svg>
+          <span><strong>L1</strong> Tertiary (MCH, SSH, Private)</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <svg width="20" height="20" viewBox="0 0 32 32">
+            <rect x="3" y="3" width="26" height="26" rx="3"
+                  fill="#F59E0B" stroke="#fff" strokeWidth="2"/>
+            <path d="M16 12v8H12v-8H4v-4h8V0h4v8h8v4z" fill="#fff"
+                  transform="translate(2,2) scale(0.8)"/>
+          </svg>
+          <span><strong>L2</strong> Secondary (DCH, SDH, CHC)</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <svg width="20" height="20" viewBox="0 0 32 32">
+            <circle cx="16" cy="16" r="13" fill="#2563EB" stroke="#fff" strokeWidth="2"/>
+            <path d="M16 12v8H12v-8H4v-4h8V0h4v8h8v4z" fill="#fff"
+                  transform="translate(2,2) scale(0.8)"/>
+          </svg>
+          <span><strong>L3</strong> Primary (PHC, UPHC, UHC)</span>
+        </div>
+        <div style={{ marginTop: 6, fontWeight: 600, color: "var(--text)" }}>Routing</div>
+        <div>
+          <svg width="22" height="6" style={{ marginRight: 6, verticalAlign: "middle" }}>
+            <line x1="0" y1="3" x2="22" y2="3" stroke="#DC2626" strokeWidth="2" strokeDasharray="3,2"/>
+          </svg>
+          50 km radius
+        </div>
+        <div>
+          <svg width="22" height="6" style={{ marginRight: 6, verticalAlign: "middle" }}>
+            <line x1="0" y1="3" x2="22" y2="3" stroke="#DC2626" strokeWidth="4"/>
+          </svg>
+          Route to L1 hospital
+        </div>
+        <div>
+          <svg width="22" height="6" style={{ marginRight: 6, verticalAlign: "middle" }}>
+            <line x1="0" y1="3" x2="22" y2="3" stroke="#F59E0B" strokeWidth="4"/>
+          </svg>
+          Route to L2 hospital
+        </div>
+        <div>
+          <svg width="22" height="6" style={{ marginRight: 6, verticalAlign: "middle" }}>
+            <line x1="0" y1="3" x2="22" y2="3" stroke="#2563EB" strokeWidth="4"/>
+          </svg>
+          Route to L3 hospital
+        </div>
+        <div style={{ marginTop: 4, fontSize: 11, fontStyle: "italic" }}>
+          Recommended route is shown with a thicker line and white dashed halo.
+        </div>
       </div>
     </aside>
   );

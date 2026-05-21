@@ -31,6 +31,9 @@ export const api = {
   hospital:      (id) => request(`/api/hospitals/${id}`),
   nearestHospitals: (ambulanceId, radiusKm = 50) =>
     request(`/api/nearest-hospitals?ambulance_id=${ambulanceId}&radius_km=${radiusKm}`),
+  recommendHospitals: (ambulanceId, injuryType, radiusKm = 50) =>
+    request(`/api/recommend-hospitals?ambulance_id=${ambulanceId}&injury_type=${encodeURIComponent(injuryType)}&radius_km=${radiusKm}`),
+  injuryOptions: () => request("/api/injury-options"),
   uploadAmbulances: (file) => {
     const fd = new FormData();
     fd.append("file", file);
