@@ -63,11 +63,12 @@ function hospitalIcon(level, isHighlighted = false) {
   });
 }
 
-// Precompute the 4 icon variants (3 levels + unknown), normal + highlighted
+// Precompute the icon variants (3 levels + unknown).
+// JS object keys can't start with a digit unless quoted; we use string keys.
 const ICONS = {
-  1: hospitalIcon(1, false), 1_hi: hospitalIcon(1, true),
-  2: hospitalIcon(2, false), 2_hi: hospitalIcon(2, true),
-  3: hospitalIcon(3, false), 3_hi: hospitalIcon(3, true),
+  "1": hospitalIcon(1, false),
+  "2": hospitalIcon(2, false),
+  "3": hospitalIcon(3, false),
   unknown: hospitalIcon(null, false),
 };
 
